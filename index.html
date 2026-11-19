@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSP Business Brother Matcher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Space+Grotesk:wght@500..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1E1530; --paper: #F6F3EC; --card: #FFFDF8; --purple: #4B2378; --purple-2: #6B3FA0;
+    --gold: #D9B44A; --gold-dark: #7A5C0E; --muted: #5E566A; --rule: #DDD5C4; --band: #EDE6D6;
+    --good: #1F6B45; --warn: #8A4B00;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.5; }
+  header { background: var(--ink); color: var(--paper); padding: 36px 24px 32px; }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .kicker { font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin: 0 0 8px; }
+  h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(30px, 5vw, 44px); line-height: 1.08; margin: 0 0 10px; }
+  header p { margin: 0; color: #D9D2E3; max-width: 720px; }
+  main { padding: 28px 24px 64px; }
+  h2 { font-family: 'Space Grotesk', sans-serif; font-size: 24px; margin: 0 0 4px; }
+  .step { background: var(--card); border: 1px solid var(--rule); border-top: 5px solid var(--purple); border-radius: 10px; padding: 22px 24px; margin-bottom: 20px; }
+  .step .num { display: inline-block; background: var(--purple); color: #fff; font-weight: 700; border-radius: 50%; width: 28px; height: 28px; text-align: center; line-height: 28px; margin-right: 10px; font-size: 14px; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  button, .filebtn {
+    font: inherit; font-weight: 600; border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer;
+    background: var(--purple); color: #fff;
+  }
+  button:hover, .filebtn:hover { background: var(--purple-2); }
+  button.ghost { background: transparent; color: var(--purple); border: 2px solid var(--purple); padding: 8px 14px; }
+  button.ghost:hover { background: #EFE8F7; }
+  button:focus-visible, .filebtn:focus-within, select:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .filebtn input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  textarea { width: 100%; min-height: 120px; font: 13px/1.4 ui-monospace, Menlo, monospace; border: 1px solid var(--rule); border-radius: 8px; padding: 10px; background: #fff; color: var(--ink); }
+  details { margin-top: 14px; }
+  summary { cursor: pointer; font-weight: 600; color: var(--purple); }
+  .howto { background: var(--band); border-left: 5px solid var(--gold-dark); border-radius: 6px; padding: 12px 16px; margin-top: 14px; font-size: 15px; }
+  .howto ol { margin: 6px 0 0; padding-left: 20px; }
+  .msg { margin-top: 12px; font-weight: 600; }
+  .msg.err { color: #A3261C; }
+  .msg.ok { color: var(--good); }
+  label.inline { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  input[type=number] { width: 72px; font: inherit; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 6px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 4px 0 18px; }
+  .stat { background: var(--paper); border-radius: 8px; padding: 12px 14px; }
+  .stat b { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 30px; line-height: 1.1; color: var(--purple); }
+  .stat span { color: var(--muted); font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th { text-align: left; background: var(--ink); color: var(--paper); padding: 10px 12px; font-weight: 600; position: sticky; top: 0; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tr:nth-child(even) td { background: #FBF8F1; }
+  .name { font-weight: 700; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .note { font-size: 13px; color: var(--muted); font-style: italic; margin-top: 4px; }
+  select { font: inherit; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 6px; background: #fff; max-width: 260px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin: 2px 4px 2px 0; }
+  .pill.top { background: #F3E7C2; color: var(--gold-dark); }
+  .pill.shared { background: #E9E1F4; color: var(--purple); }
+  .pill.none { background: #F6E1D6; color: var(--warn); }
+  .pill.manual { background: #DDEFE5; color: var(--good); }
+  .score { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; }
+  .tablewrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--rule); }
+  .load { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .load div { background: var(--paper); border-radius: 6px; padding: 6px 10px; font-size: 14px; }
+  .load div.over { background: #F6E1D6; }
+  .banner { background: #FFF4D6; border: 1px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-weight: 600; }
+  .hidden { display: none; }
+  footer { color: var(--muted); font-size: 13px; text-align: center; padding: 0 24px 40px; }
+  @media (max-width: 640px) { td, th { padding: 8px; } select { max-width: 160px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <p class="kicker">Delta Sigma Pi · Business Brother Program</p>
+    <h1>Business Brother Matcher</h1>
+    <p>Load the responses from the matching Google Form. Each new member gets paired with the junior whose career interests fit best, and you can adjust any pair by hand.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="step" aria-labelledby="s1">
+    <h2 id="s1"><span class="num">1</span>Load the form responses</h2>
+    <p class="sub">Upload the CSV, or paste the rows straight from the responses Google Sheet.</p>
+    <div class="row">
+      <label class="filebtn">Upload CSV<input type="file" id="file" accept=".csv,.tsv,text/csv,text/plain"></label>
+      <button class="ghost" id="sampleBtn" type="button">Try with sample data</button>
+    </div>
+    <details>
+      <summary>Or paste rows from the Google Sheet</summary>
+      <p class="meta">Select all cells in the responses sheet (including the header row), copy, and paste here.</p>
+      <textarea id="paste" placeholder="Timestamp	Email Address	Full name	I am a...	..."></textarea>
+      <div class="row" style="margin-top:10px"><button type="button" id="pasteBtn">Match these responses</button></div>
+    </details>
+    <div class="howto">
+      <b>Getting the responses out of Google Forms</b>
+      <ol>
+        <li>Open the form and go to the <b>Responses</b> tab.</li>
+        <li>Click <b>Link to Sheets</b> to create a responses spreadsheet.</li>
+        <li>In the sheet, choose <b>File → Download → Comma-separated values (.csv)</b>, then upload it above.</li>
+      </ol>
+    </div>
+    <p class="msg" id="loadMsg" role="status"></p>
+  </section>
+
+  <section class="step hidden" id="settings" aria-labelledby="s2">
+    <h2 id="s2"><span class="num">2</span>Matching rules</h2>
+    <p class="sub">Pairs score highest when both people picked the same top interest, then by overlap in the career paths they checked. Every junior gets one new member before anyone gets a second.</p>
+    <div class="row">
+      <label class="inline" for="cap">Max new members per junior <input type="number" id="cap" min="1" max="10" value="1"></label>
+      <button type="button" id="rematch">Re-run matching</button>
+    </div>
+    <p class="meta" id="capHint"></p>
+  </section>
+
+  <section class="step hidden" id="results" aria-labelledby="s3">
+    <h2 id="s3"><span class="num">3</span>Business Brother pairs</h2>
+    <div id="sampleBanner" class="banner hidden">You're looking at sample data with made-up names. Upload your real responses to replace it.</div>
+    <div class="stats" id="stats"></div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>New member</th><th>Business Brother (junior)</th><th>Fit</th><th>Why they match</th></tr></thead>
+        <tbody id="pairs"></tbody>
+      </table>
+    </div>
+    <h2 style="margin-top:22px;font-size:19px">Junior load</h2>
+    <div class="load" id="load"></div>
+    <div class="row" style="margin-top:20px">
+      <button type="button" id="copyCsv">Copy pairs for Google Sheets</button>
+      <button type="button" class="ghost" id="copyText">Copy as announcement text</button>
+    </div>
+    <p class="msg" id="copyMsg" role="status"></p>
+    <textarea id="copyFallback" class="hidden" readonly aria-label="Pairs to copy"></textarea>
+  </section>
+</main>
+<footer>Responses stay in your browser. Nothing is uploaded or saved.</footer>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let people = { nme: [], jr: [] };
+  let assignment = {};   // nme index -> junior index or -1
+  let manual = {};       // nme index -> true when changed by hand
+  let isSample = false;
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // ---------- parsing ----------
+  function parseDelimited(text) {
+    const delim = (text.split('\n')[0].match(/\t/g) || []).length > 0 ? '\t' : ',';
+    const rows = []; let row = []; let field = ''; let q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+        else field += c;
+      } else if (c === '"') q = true;
+      else if (c === delim) { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(field); field = '';
+        if (row.some(v => v.trim() !== '')) rows.push(row);
+        row = [];
+      } else field += c;
+    }
+    row.push(field);
+    if (row.some(v => v.trim() !== '')) rows.push(row);
+    return rows;
+  }
+
+  function findCol(headers, tests) {
+    const h = headers.map(x => x.toLowerCase());
+    for (const t of tests) { const i = h.findIndex(x => x.includes(t)); if (i >= 0) return i; }
+    return -1;
+  }
+
+  const splitInterests = (s) => (s || '').split(/,\s*/).map(x => x.trim()).filter(Boolean);
+  const norm = (s) => (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+  function load(text, sample) {
+    const rows = parseDelimited(text.replace(/^﻿/, ''));
+    if (rows.length < 2) return fail('No responses found. Make sure the header row is included.');
+    const H = rows[0];
+    const col = {
+      email: findCol(H, ['email']),
+      name: findCol(H, ['full name', 'name']),
+      role: findCol(H, ['i am a', 'role', 'class']),
+      major: findCol(H, ['major']),
+      top: findCol(H, ['top interest', 'pick one']),
+      ints: findCol(H, ['career paths', 'interest you']),
+      notes: findCol(H, ['anything else', 'notes'])
+    };
+    const missing = ['name', 'role', 'top'].filter(k => col[k] < 0);
+    if (missing.length) return fail('Couldn\'t find these questions in the header row: ' + missing.map(m => ({name:'Full name', role:'I am a...', top:'top interest'}[m])).join(', ') + '.');
+    const nme = [], jr = [];
+    // keep the latest response per email/name
+    const seen = new Map();
+    rows.slice(1).forEach(r => {
+      const get = (k) => col[k] >= 0 ? (r[col[k]] || '').trim() : '';
+      const name = get('name'); if (!name) return;
+      const p = { name, email: get('email'), major: get('major'), top: get('top'), ints: splitInterests(get('ints')), notes: get('notes') };
+      const roleTxt = norm(get('role'));
+      p.role = roleTxt.includes('junior') ? 'jr' : (roleTxt.includes('nme') || roleTxt.includes('new') ? 'nme' : null);
+      if (!p.role) return;
+      seen.set(norm(p.email || p.name), p);
+    });
+    seen.forEach(p => (p.role === 'nme' ? nme : jr).push(p));
+    if (!nme.length || !jr.length) return fail(`Found ${nme.length} new member(s) and ${jr.length} junior(s). You need at least one of each to match.`);
+    people = { nme, jr }; manual = {}; isSample = !!sample;
+    $('cap').value = Math.max(1, Math.ceil(nme.length / jr.length));
+    $('loadMsg').className = 'msg ok';
+    $('loadMsg').textContent = `Loaded ${nme.length} new member${nme.length === 1 ? '' : 's'} and ${jr.length} junior${jr.length === 1 ? '' : 's'}.`;
+    $('settings').classList.remove('hidden');
+    $('results').classList.remove('hidden');
+    run();
+  }
+  function fail(m) { $('loadMsg').className = 'msg err'; $('loadMsg').textContent = m; }
+
+  // ---------- scoring ----------
+  function majorWords(s) { return new Set(norm(s).split(/[^a-z]+/).filter(w => w.length > 3 && !['and','with','minor','major','undecided'].includes(w))); }
+  function score(a, b) {
+    const reasons = [];
+    let s = 0;
+    const at = norm(a.top), bt = norm(b.top);
+    const ai = new Set(a.ints.map(norm)), bi = new Set(b.ints.map(norm));
+    if (at && at === bt) { s += 10; reasons.push({ t: 'top', label: 'Same top interest: ' + a.top }); }
+    else {
+      if (at && bi.has(at)) { s += 5; reasons.push({ t: 'shared', label: 'Junior is interested in ' + a.top }); }
+      if (bt && ai.has(bt)) { s += 3; reasons.push({ t: 'shared', label: 'New member is interested in ' + b.top }); }
+    }
+    const shared = [...ai].filter(x => bi.has(x));
+    s += shared.length * 2;
+    const sharedLabels = a.ints.filter(x => bi.has(norm(x)));
+    if (sharedLabels.length) reasons.push({ t: 'shared', label: 'Both picked: ' + sharedLabels.join(', ') });
+    const mw = majorWords(a.major), bw = majorWords(b.major);
+    if ([...mw].some(w => bw.has(w))) { s += 1; reasons.push({ t: 'shared', label: 'Similar major' }); }
+    return { s, reasons };
+  }
+
+  // ---------- assignment (Hungarian, maximizing score) ----------
+  function hungarian(cost) { // square matrix, minimize
+    const n = cost.length, INF = 1e18;
+    const u = Array(n + 1).fill(0), v = Array(n + 1).fill(0), p = Array(n + 1).fill(0), way = Array(n + 1).fill(0);
+    for (let i = 1; i <= n; i++) {
+      p[0] = i; let j0 = 0; const minv = Array(n + 1).fill(INF); const used = Array(n + 1).fill(false);
+      do {
+        used[j0] = true; const i0 = p[j0]; let delta = INF, j1 = 0;
+        for (let j = 1; j <= n; j++) if (!used[j]) {
+          const cur = cost[i0 - 1][j - 1] - u[i0] - v[j];
+          if (cur < minv[j]) { minv[j] = cur; way[j] = j0; }
+          if (minv[j] < delta) { delta = minv[j]; j1 = j; }
+        }
+        for (let j = 0; j <= n; j++) { if (used[j]) { u[p[j]] += delta; v[j] -= delta; } else minv[j] -= delta; }
+        j0 = j1;
+      } while (p[j0] !== 0);
+      do { const j1 = way[j0]; p[j0] = p[j1]; j0 = j1; } while (j0);
+    }
+    const res = Array(n).fill(-1);
+    for (let j = 1; j <= n; j++) if (p[j]) res[p[j] - 1] = j - 1;
+    return res;
+  }
+
+  function run() {
+    const cap = Math.max(1, Math.min(10, parseInt($('cap').value, 10) || 1));
+    $('cap').value = cap;
+    const { nme, jr } = people;
+    const slots = []; // [juniorIndex, slotNumber]
+    jr.forEach((_, j) => { for (let k = 0; k < cap; k++) slots.push([j, k]); });
+    const N = Math.max(nme.length, slots.length);
+    const BIG = 1000;
+    const cost = [];
+    for (let i = 0; i < N; i++) {
+      const row = [];
+      for (let c = 0; c < N; c++) {
+        if (i >= nme.length) row.push(0);
+        else if (c >= slots.length) row.push(BIG); // unmatched
+        else { const [j, k] = slots[c]; row.push(100 - score(nme[i], jr[j]).s + k * 4); }
+      }
+      cost.push(row);
+    }
+    const res = hungarian(cost);
+    assignment = {};
+    nme.forEach((_, i) => { const c = res[i]; assignment[i] = (c >= 0 && c < slots.length) ? slots[c][0] : -1; });
+    manual = {};
+    const unmatched = nme.length - jr.length * cap;
+    $('capHint').textContent = unmatched > 0
+      ? `With ${jr.length} juniors at ${cap} each, ${unmatched} new member${unmatched === 1 ? '' : 's'} won't get a match. Raise the limit to cover everyone.`
+      : `${jr.length} juniors × ${cap} = room for ${jr.length * cap} new members (${nme.length} signed up).`;
+    render();
+  }
+
+  // ---------- rendering ----------
+  function render() {
+    const { nme, jr } = people;
+    const cap = parseInt($('cap').value, 10) || 1;
+    const loads = jr.map(() => 0);
+    Object.values(assignment).forEach(j => { if (j >= 0) loads[j]++; });
+    let matched = 0, topMatches = 0, noOverlap = 0;
+    const rows = nme.map((p, i) => {
+      const j = assignment[i];
+      const opts = ['<option value="-1">— No match —</option>'].concat(
+        jr.map((q, k) => `<option value="${k}"${k === j ? ' selected' : ''}>${esc(q.name)} (${loads[k]}/${cap})</option>`)
+      ).join('');
+      let fit = '', why = '<span class="pill none">Not matched</span>';
+      if (j >= 0) {
+        matched++;
+        const r = score(p, jr[j]);
+        if (r.reasons.some(x => x.t === 'top')) topMatches++;
+        if (!r.reasons.length) noOverlap++;
+        fit = `<span class="score">${r.s}</span>`;
+        why = (manual[i] ? '<span class="pill manual">Set by hand</span>' : '') +
+          (r.reasons.length ? r.reasons.map(x => `<span class="pill ${x.t}">${esc(x.label)}</span>`).join('') : '<span class="pill none">No shared interests</span>') +
+          (jr[j].notes ? `<div class="note">Junior's note: ${esc(jr[j].notes)}</div>` : '');
+      }
+      return `<tr>
+        <td><div class="name">${esc(p.name)}</div><div class="meta">${esc(p.top || '—')}${p.major ? ' · ' + esc(p.major) : ''}</div>${p.notes ? `<div class="note">${esc(p.notes)}</div>` : ''}</td>
+        <td><select data-i="${i}" aria-label="Business Brother for ${esc(p.name)}">${opts}</select>${j >= 0 ? `<div class="meta">${esc(jr[j].top || '—')}${jr[j].major ? ' · ' + esc(jr[j].major) : ''}</div>` : ''}</td>
+        <td>${fit}</td><td>${why}</td></tr>`;
+    });
+    $('pairs').innerHTML = rows.join('');
+    $('pairs').querySelectorAll('select').forEach(s => s.addEventListener('change', e => {
+      const i = +e.target.dataset.i; assignment[i] = +e.target.value; manual[i] = true; render();
+    }));
+    $('stats').innerHTML = [
+      [matched + ' / ' + nme.length, 'new members matched'],
+      [topMatches, 'pairs share a top interest'],
+      [jr.length, 'juniors available'],
+      [noOverlap, 'pairs with no shared interest']
+    ].map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join('');
+    $('load').innerHTML = jr.map((q, k) => `<div class="${loads[k] > cap ? 'over' : ''}"><b>${esc(q.name)}</b> · ${loads[k]} new member${loads[k] === 1 ? '' : 's'}</div>`).join('');
+    $('sampleBanner').classList.toggle('hidden', !isSample);
+  }
+
+  // ---------- export ----------
+  function pairRows() {
+    const { nme, jr } = people;
+    return nme.map((p, i) => {
+      const j = assignment[i]; const q = j >= 0 ? jr[j] : null;
+      const r = q ? score(p, q) : { reasons: [] };
+      return { p, q, why: r.reasons.map(x => x.label).join('; ') };
+    });
+  }
+  function copy(text, label) {
+    const done = () => { $('copyMsg').className = 'msg ok'; $('copyMsg').textContent = label + ' copied. Paste it wherever you need it.'; $('copyFallback').classList.add('hidden'); };
+    const fallback = () => {
+      const ta = $('copyFallback'); ta.value = text; ta.classList.remove('hidden'); ta.focus(); ta.select();
+      $('copyMsg').className = 'msg'; $('copyMsg').textContent = 'Copying is blocked here. The text is selected below: press Ctrl/Cmd+C.';
+    };
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  }
+  $('copyCsv').addEventListener('click', () => {
+    const cell = (s) => String(s || '').replace(/[\t\n]/g, ' ');
+    const lines = [['New member', 'New member email', 'Business Brother', 'Business Brother email', 'Why they match'].join('\t')]
+      .concat(pairRows().map(({ p, q, why }) => [p.name, p.email, q ? q.name : 'No match', q ? q.email : '', why].map(cell).join('\t')));
+    copy(lines.join('\n'), 'Pairs table');
+  });
+  $('copyText').addEventListener('click', () => {
+    const txt = 'Business Brother pairs\n\n' + pairRows().map(({ p, q }) => `• ${p.name} → ${q ? q.name : 'match coming soon'}`).join('\n');
+    copy(txt, 'Announcement');
+  });
+
+  // ---------- inputs ----------
+  $('file').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => load(rd.result, false);
+    rd.onerror = () => fail('Couldn\'t read that file.');
+    rd.readAsText(f);
+    e.target.value = '';
+  });
+  $('pasteBtn').addEventListener('click', () => load($('paste').value, false));
+  $('rematch').addEventListener('click', run);
+  $('cap').addEventListener('change', run);
+
+  const SAMPLE = [
+    ['Timestamp','Email Address','Full name','I am a...','Intended or declared major(s)','Which career paths interest you? (Select all that apply)','If you had to pick one, which path is your top interest?','Anything else that would help us find a good match? (Optional)'],
+    ['','avery@example.edu','Avery Lin','NME class member','Economics','Investment banking, Private equity / VC','Investment banking',''],
+    ['','jordan@example.edu','Jordan Reyes','NME class member','Computer Science','Tech / product, Entrepreneurship','Tech / product','Interested in startups'],
+    ['','sam@example.edu','Sam Patel','NME class member','Public Policy','Consulting, Sales & marketing','Consulting',''],
+    ['','riley@example.edu','Riley Chen','NME class member','Economics, Math','Investment banking, Consulting','Consulting',''],
+    ['','casey@example.edu','Casey Brooks','NME class member','Psychology','Sales & marketing, Entrepreneurship','Sales & marketing',''],
+    ['','morgan@example.edu','Morgan Diaz','NME class member','Undecided','Accounting, Consulting','Accounting',''],
+    ['','taylor@example.edu','Taylor Kim','Junior brother','Economics','Investment banking, Private equity / VC, Consulting','Investment banking','Recruited for summer analyst roles'],
+    ['','drew@example.edu','Drew Okafor','Junior brother','Computer Science','Tech / product, Entrepreneurship, Consulting','Tech / product',''],
+    ['','jamie@example.edu','Jamie Nguyen','Junior brother','Public Policy','Consulting, Accounting','Consulting','Back from abroad this semester'],
+    ['','quinn@example.edu','Quinn Harper','Junior brother','Markets & Management','Sales & marketing, Entrepreneurship','Sales & marketing','']
+  ];
+  $('sampleBtn').addEventListener('click', () => {
+    load(SAMPLE.map(r => r.map(v => '"' + v.replace(/"/g, '""') + '"').join(',')).join('\n'), true);
+  });
+})();
+</script>
+</body>
+</html>
