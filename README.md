@@ -3,7 +3,7 @@
 
 A simple web tool for Duke's Delta Sigma Pi chapter that pairs each new member (NME class) with a junior Business Brother based on shared career interests.
 
-**Live site:** https://YOUR-USERNAME.github.io/dsp-matcher/
+**Live site:** https://kinseynam.github.io/dsp-matcher/
 
 ## What it does
 
